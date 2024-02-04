@@ -1,0 +1,86 @@
+package hello;
+
+import java.util.Random;
+import java.util.Scanner;
+//MUHAMMED SAVAŞ NO:210408003
+public class aaa {
+
+	public static void main(String[] args) {
+
+
+		int rowsA = 500;
+		int colsA = 500;
+		int rowsB = 500;
+		int colsB = 500;
+
+
+		int[][] matrixA = generateRandomMatrix(rowsA, colsA);
+		int[][] matrixB = generateRandomMatrix(rowsB, colsB);
+
+
+		int[] threadCounts = {2,4,8};
+
+		for (int threads : threadCounts) {
+			System.out.println("\nTesting with " + threads + " threads:");
+
+
+			long startTime = System.nanoTime();
+			parallelMultiplyMatrices(matrixA, matrixB, threads);
+			long endTime = System.nanoTime();
+
+
+			System.out.println("Execution Time with " + threads + " threads: " + (endTime - startTime) + " nanoseconds");
+		}
+	}
+
+
+	private static void parallelMultiplyMatrices(int[][] matrixA, int[][] matrixB, int threads) {
+		int rowsA = matrixA.length;
+
+		Thread[] threadPool = new Thread[threads];
+
+		for (int i = 0; i < threads; i++) {
+			final int startRow = i * rowsA / threads;
+			final int endRow = (i + 1) * rowsA / threads;
+
+			threadPool[i] = new Thread(() -> {
+				for (int row = startRow; row < endRow; row++) {
+					for (int col = 0; col < matrixB[0].length; col++) {
+						for (int k = 0; k < matrixA[0].length; k++) {
+							matrixA[row][col] += matrixA[row][k] * matrixB[k][col];
+						}
+					}
+				}
+			});
+
+			threadPool[i].start();
+		}
+
+
+		try {
+			for (Thread thread : threadPool) {
+				thread.join();
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	private static int[][] generateRandomMatrix(int rows, int cols) {
+		int[][] matrix = new int[rows][cols];
+		Random rand = new Random();
+
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				matrix[i][j] = rand.nextInt(10); 
+			}
+		}
+
+		return matrix;
+	}
+
+
+}
+
+
